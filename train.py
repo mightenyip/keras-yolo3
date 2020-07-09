@@ -1,7 +1,7 @@
 """
 Retrain the YOLO model for your own dataset.
 """
-
+import os
 import numpy as np
 import keras.backend as K
 from keras.layers import Input, Lambda
@@ -14,9 +14,9 @@ from yolo3.utils import get_random_data
 
 
 def _main():
-    annotation_path = 'train.txt'
+    annotation_path = 'C:/Users/might/Documents/GitHub/AND_Project/keras-yolo3/2020_train.txt'
     log_dir = 'logs/000/'
-    classes_path = 'model_data/voc_classes.txt'
+    classes_path = 'model_data/AND_classes.txt'
     anchors_path = 'model_data/yolo_anchors.txt'
     class_names = get_classes(classes_path)
     num_classes = len(class_names)
@@ -41,6 +41,8 @@ def _main():
     val_split = 0.1
     with open(annotation_path) as f:
         lines = f.readlines()
+    # path, dirs, files = next(os.walk(annotation_path)) # find total number of annotated images
+    # lines = len(files)
     np.random.seed(10101)
     np.random.shuffle(lines)
     np.random.seed(None)
@@ -126,8 +128,7 @@ def create_model(input_shape, anchors, num_classes, load_pretrained=True, freeze
             print('Freeze the first {} layers of total {} layers.'.format(num, len(model_body.layers)))
 
     model_loss = Lambda(yolo_loss, output_shape=(1,), name='yolo_loss',
-        arguments={'anchors': anchors, 'num_classes': num_classes, 'ignore_thresh': 0.5})(
-        [*model_body.output, *y_true])
+        arguments={'anchors': anchors, 'num_classes': num_classes, 'ignore_thresh': 0.5})([*model_body.output, *y_true])
     model = Model([model_body.input, *y_true], model_loss)
 
     return model
